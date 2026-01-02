@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { 
   Search, 
   TrendingUp, 
@@ -23,7 +24,12 @@ import {
   Calendar,
   Percent,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Calculator,
+  Banknote,
+  Scale,
+  Target,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
@@ -37,7 +43,8 @@ import {
   AreaChart,
   Area,
   BarChart,
-  Bar
+  Bar,
+  ComposedChart
 } from "recharts";
 
 type StockData = {
@@ -47,10 +54,19 @@ type StockData = {
   change: number;
   changePercent: number;
   marketCap: number;
+  enterpriseValue: number;
   peRatio: number;
+  forwardPE: number;
+  pegRatio: number;
+  priceToBook: number;
+  priceToSales: number;
+  evToEbitda: number;
+  evToRevenue: number;
   eps: number;
+  epsGrowth: number;
   dividend: number;
   dividendYield: number;
+  payoutRatio: number;
   week52High: number;
   week52Low: number;
   volume: number;
@@ -63,6 +79,42 @@ type StockData = {
   founded: string;
   ceo: string;
   headquarters: string;
+  // Advanced metrics
+  revenue: number;
+  revenueGrowth: number;
+  revenueGrowth3Y: number;
+  grossProfit: number;
+  grossMargin: number;
+  operatingIncome: number;
+  operatingMargin: number;
+  netIncome: number;
+  netMargin: number;
+  ebitda: number;
+  ebitdaMargin: number;
+  fcf: number;
+  fcfMargin: number;
+  fcfYield: number;
+  fcfPerShare: number;
+  operatingCashFlow: number;
+  capex: number;
+  // Debt metrics
+  totalDebt: number;
+  totalCash: number;
+  netDebt: number;
+  debtToEquity: number;
+  debtToEbitda: number;
+  interestCoverage: number;
+  currentRatio: number;
+  quickRatio: number;
+  // Returns
+  roe: number;
+  roa: number;
+  roic: number;
+  // DCF
+  dcfValue: number;
+  dcfUpside: number;
+  wacc: number;
+  terminalGrowth: number;
 };
 
 type FinancialMetric = {
@@ -87,6 +139,13 @@ const generateMockData = (symbol: string): StockData => {
 
   const basePrice = Math.random() * 400 + 50;
   const change = (Math.random() - 0.5) * 20;
+  const revenue = Math.floor(Math.random() * 300 + 50) * 1e9;
+  const grossMargin = Math.random() * 0.3 + 0.3;
+  const operatingMargin = Math.random() * 0.2 + 0.15;
+  const netMargin = Math.random() * 0.15 + 0.1;
+  const ebitdaMargin = Math.random() * 0.25 + 0.2;
+  const fcfMargin = Math.random() * 0.15 + 0.1;
+  const marketCap = Math.floor(Math.random() * 2000 + 100) * 1e9;
 
   return {
     symbol: symbol.toUpperCase(),
@@ -94,11 +153,20 @@ const generateMockData = (symbol: string): StockData => {
     price: parseFloat(basePrice.toFixed(2)),
     change: parseFloat(change.toFixed(2)),
     changePercent: parseFloat(((change / basePrice) * 100).toFixed(2)),
-    marketCap: Math.floor(Math.random() * 2000 + 100) * 1e9,
+    marketCap: marketCap,
+    enterpriseValue: marketCap * 1.1,
     peRatio: parseFloat((Math.random() * 40 + 10).toFixed(2)),
+    forwardPE: parseFloat((Math.random() * 30 + 8).toFixed(2)),
+    pegRatio: parseFloat((Math.random() * 2 + 0.5).toFixed(2)),
+    priceToBook: parseFloat((Math.random() * 15 + 2).toFixed(2)),
+    priceToSales: parseFloat((Math.random() * 10 + 1).toFixed(2)),
+    evToEbitda: parseFloat((Math.random() * 20 + 8).toFixed(2)),
+    evToRevenue: parseFloat((Math.random() * 8 + 2).toFixed(2)),
     eps: parseFloat((Math.random() * 15 + 1).toFixed(2)),
+    epsGrowth: parseFloat((Math.random() * 40 - 10).toFixed(1)),
     dividend: parseFloat((Math.random() * 3).toFixed(2)),
     dividendYield: parseFloat((Math.random() * 4).toFixed(2)),
+    payoutRatio: parseFloat((Math.random() * 50 + 10).toFixed(1)),
     week52High: parseFloat((basePrice * 1.3).toFixed(2)),
     week52Low: parseFloat((basePrice * 0.7).toFixed(2)),
     volume: Math.floor(Math.random() * 50000000 + 1000000),
@@ -111,6 +179,42 @@ const generateMockData = (symbol: string): StockData => {
     founded: "1976",
     ceo: "John Doe",
     headquarters: "Cupertino, CA",
+    // Advanced metrics
+    revenue: revenue,
+    revenueGrowth: parseFloat((Math.random() * 30 - 5).toFixed(1)),
+    revenueGrowth3Y: parseFloat((Math.random() * 25 + 5).toFixed(1)),
+    grossProfit: revenue * grossMargin,
+    grossMargin: parseFloat((grossMargin * 100).toFixed(1)),
+    operatingIncome: revenue * operatingMargin,
+    operatingMargin: parseFloat((operatingMargin * 100).toFixed(1)),
+    netIncome: revenue * netMargin,
+    netMargin: parseFloat((netMargin * 100).toFixed(1)),
+    ebitda: revenue * ebitdaMargin,
+    ebitdaMargin: parseFloat((ebitdaMargin * 100).toFixed(1)),
+    fcf: revenue * fcfMargin,
+    fcfMargin: parseFloat((fcfMargin * 100).toFixed(1)),
+    fcfYield: parseFloat((Math.random() * 6 + 1).toFixed(2)),
+    fcfPerShare: parseFloat((Math.random() * 20 + 2).toFixed(2)),
+    operatingCashFlow: revenue * (fcfMargin + 0.05),
+    capex: revenue * 0.05,
+    // Debt metrics
+    totalDebt: marketCap * (Math.random() * 0.4 + 0.1),
+    totalCash: marketCap * (Math.random() * 0.2 + 0.05),
+    netDebt: marketCap * (Math.random() * 0.3 - 0.05),
+    debtToEquity: parseFloat((Math.random() * 1.5 + 0.2).toFixed(2)),
+    debtToEbitda: parseFloat((Math.random() * 3 + 0.5).toFixed(2)),
+    interestCoverage: parseFloat((Math.random() * 20 + 5).toFixed(1)),
+    currentRatio: parseFloat((Math.random() * 2 + 0.8).toFixed(2)),
+    quickRatio: parseFloat((Math.random() * 1.5 + 0.5).toFixed(2)),
+    // Returns
+    roe: parseFloat((Math.random() * 40 + 10).toFixed(1)),
+    roa: parseFloat((Math.random() * 20 + 5).toFixed(1)),
+    roic: parseFloat((Math.random() * 30 + 8).toFixed(1)),
+    // DCF
+    dcfValue: parseFloat((basePrice * (1 + Math.random() * 0.4 - 0.1)).toFixed(2)),
+    dcfUpside: parseFloat((Math.random() * 40 - 10).toFixed(1)),
+    wacc: parseFloat((Math.random() * 4 + 7).toFixed(1)),
+    terminalGrowth: parseFloat((Math.random() * 1.5 + 2).toFixed(1)),
   };
 };
 
@@ -134,6 +238,32 @@ const generateVolumeData = () => {
   }));
 };
 
+const generateRevenueHistory = () => {
+  const years = ['2020', '2021', '2022', '2023', '2024'];
+  let revenue = 200;
+  return years.map(year => {
+    revenue = revenue * (1 + Math.random() * 0.2);
+    const netIncome = revenue * (0.15 + Math.random() * 0.1);
+    const fcf = revenue * (0.12 + Math.random() * 0.08);
+    return {
+      year,
+      revenue: parseFloat(revenue.toFixed(1)),
+      netIncome: parseFloat(netIncome.toFixed(1)),
+      fcf: parseFloat(fcf.toFixed(1)),
+    };
+  });
+};
+
+const generateMarginHistory = () => {
+  const years = ['2020', '2021', '2022', '2023', '2024'];
+  return years.map(year => ({
+    year,
+    grossMargin: parseFloat((40 + Math.random() * 10).toFixed(1)),
+    operatingMargin: parseFloat((25 + Math.random() * 8).toFixed(1)),
+    netMargin: parseFloat((18 + Math.random() * 6).toFixed(1)),
+  }));
+};
+
 export default function Analyzer() {
   const [searchParams] = useSearchParams();
   const initialSymbol = searchParams.get("symbol") || "";
@@ -142,6 +272,8 @@ export default function Analyzer() {
   const [stockData, setStockData] = useState<StockData | null>(null);
   const [priceHistory, setPriceHistory] = useState<any[]>([]);
   const [volumeData, setVolumeData] = useState<any[]>([]);
+  const [revenueHistory, setRevenueHistory] = useState<any[]>([]);
+  const [marginHistory, setMarginHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -155,16 +287,17 @@ export default function Analyzer() {
     
     setIsLoading(true);
     
-    // Simulate API call
     setTimeout(() => {
       setStockData(generateMockData(searchSymbol));
       setPriceHistory(generatePriceHistory());
       setVolumeData(generateVolumeData());
+      setRevenueHistory(generateRevenueHistory());
+      setMarginHistory(generateMarginHistory());
       setIsLoading(false);
     }, 800);
   };
 
-  const getMetrics = (data: StockData): FinancialMetric[] => [
+  const getQuickMetrics = (data: StockData): FinancialMetric[] => [
     {
       label: "P/E Ratio",
       value: data.peRatio,
@@ -172,26 +305,26 @@ export default function Analyzer() {
       status: data.peRatio < 20 ? "good" : data.peRatio < 35 ? "neutral" : "warning",
     },
     {
-      label: "EPS",
-      value: `${data.eps}€`,
-      description: "Bénéfice par action",
-      status: data.eps > 5 ? "good" : data.eps > 2 ? "neutral" : "warning",
+      label: "FCF Yield",
+      value: `${data.fcfYield}%`,
+      description: "Rendement du FCF",
+      status: data.fcfYield > 4 ? "good" : data.fcfYield > 2 ? "neutral" : "warning",
     },
     {
-      label: "Beta",
-      value: data.beta,
-      description: "Volatilité par rapport au marché",
-      status: data.beta < 1 ? "good" : data.beta < 1.5 ? "neutral" : "warning",
+      label: "ROIC",
+      value: `${data.roic}%`,
+      description: "Retour sur capital investi",
+      status: data.roic > 15 ? "good" : data.roic > 10 ? "neutral" : "warning",
     },
     {
-      label: "Dividende",
-      value: `${data.dividendYield}%`,
-      description: "Rendement du dividende",
-      status: data.dividendYield > 2 ? "good" : data.dividendYield > 0 ? "neutral" : "warning",
+      label: "Croissance CA",
+      value: `${data.revenueGrowth > 0 ? "+" : ""}${data.revenueGrowth}%`,
+      description: "Croissance du chiffre d'affaires",
+      status: data.revenueGrowth > 10 ? "good" : data.revenueGrowth > 0 ? "neutral" : "warning",
     },
   ];
 
-  const formatMarketCap = (value: number) => {
+  const formatLargeNumber = (value: number) => {
     if (value >= 1e12) return `${(value / 1e12).toFixed(2)}T €`;
     if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B €`;
     if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M €`;
@@ -204,6 +337,26 @@ export default function Analyzer() {
     return value.toString();
   };
 
+  const MetricRow = ({ label, value, tooltip }: { label: string; value: string | number; tooltip?: string }) => (
+    <div className="flex justify-between py-2 border-b border-border last:border-b-0">
+      <span className="text-muted-foreground text-sm">{label}</span>
+      <span className="font-medium">{value}</span>
+    </div>
+  );
+
+  const StatusBadge = ({ value, thresholds }: { value: number; thresholds: { good: number; warning: number; reverse?: boolean } }) => {
+    const isGood = thresholds.reverse ? value < thresholds.good : value > thresholds.good;
+    const isWarning = thresholds.reverse ? value > thresholds.warning : value < thresholds.warning;
+    
+    return (
+      <Badge variant={isGood ? "default" : isWarning ? "destructive" : "secondary"} className={cn(
+        isGood && "bg-success text-success-foreground",
+      )}>
+        {value}
+      </Badge>
+    );
+  };
+
   return (
     <DashboardLayout title="Analyseur d'Actions">
       <div className="space-y-6">
@@ -211,7 +364,7 @@ export default function Analyzer() {
         <div className="space-y-4">
           <div>
             <h1 className="font-display text-3xl font-bold">Analyseur d'Actions</h1>
-            <p className="text-muted-foreground">Analysez en détail n'importe quelle action</p>
+            <p className="text-muted-foreground">Analyse fondamentale complète</p>
           </div>
           
           <Card>
@@ -241,7 +394,7 @@ export default function Analyzer() {
             {/* Stock Header */}
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-4">
                     <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                       <span className="font-display font-bold text-xl text-primary">
@@ -249,7 +402,7 @@ export default function Analyzer() {
                       </span>
                     </div>
                     <div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-wrap">
                         <h2 className="font-display text-2xl font-bold">{stockData.symbol}</h2>
                         <Badge variant="secondary">{stockData.sector}</Badge>
                       </div>
@@ -278,18 +431,67 @@ export default function Analyzer() {
               </CardContent>
             </Card>
 
+            {/* DCF Summary Card */}
+            <Card className={cn(
+              "border-2",
+              stockData.dcfUpside > 10 ? "border-success/50 bg-success/5" : 
+              stockData.dcfUpside < -10 ? "border-destructive/50 bg-destructive/5" : "border-border"
+            )}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      "h-12 w-12 rounded-xl flex items-center justify-center",
+                      stockData.dcfUpside > 10 ? "bg-success/20" : 
+                      stockData.dcfUpside < -10 ? "bg-destructive/20" : "bg-primary/20"
+                    )}>
+                      <Calculator className={cn(
+                        "h-6 w-6",
+                        stockData.dcfUpside > 10 ? "text-success" : 
+                        stockData.dcfUpside < -10 ? "text-destructive" : "text-primary"
+                      )} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Valeur intrinsèque (DCF)</p>
+                      <p className="font-display text-2xl font-bold">{stockData.dcfValue}€</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Potentiel</p>
+                    <p className={cn(
+                      "font-display text-2xl font-bold",
+                      stockData.dcfUpside > 0 ? "text-success" : "text-destructive"
+                    )}>
+                      {stockData.dcfUpside > 0 ? "+" : ""}{stockData.dcfUpside}%
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">WACC</p>
+                    <p className="font-medium">{stockData.wacc}%</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Croissance terminale</p>
+                    <p className="font-medium">{stockData.terminalGrowth}%</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="bg-secondary">
+              <TabsList className="bg-secondary flex-wrap h-auto gap-1">
                 <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-                <TabsTrigger value="financials">Métriques</TabsTrigger>
-                <TabsTrigger value="chart">Graphiques</TabsTrigger>
+                <TabsTrigger value="valuation">Valorisation</TabsTrigger>
+                <TabsTrigger value="growth">Croissance</TabsTrigger>
+                <TabsTrigger value="margins">Marges & FCF</TabsTrigger>
+                <TabsTrigger value="debt">Dette & Santé</TabsTrigger>
+                <TabsTrigger value="charts">Graphiques</TabsTrigger>
                 <TabsTrigger value="company">Entreprise</TabsTrigger>
               </TabsList>
 
+              {/* OVERVIEW TAB */}
               <TabsContent value="overview" className="space-y-6">
-                {/* Key Metrics Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {getMetrics(stockData).map((metric, index) => (
+                  {getQuickMetrics(stockData).map((metric, index) => (
                     <Card key={index}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-2">
@@ -305,7 +507,6 @@ export default function Analyzer() {
                   ))}
                 </div>
 
-                {/* Price Chart */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -347,12 +548,11 @@ export default function Analyzer() {
                   </CardContent>
                 </Card>
 
-                {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <Card>
                     <CardContent className="p-4">
                       <p className="text-sm text-muted-foreground mb-1">Capitalisation</p>
-                      <p className="font-display text-lg font-bold">{formatMarketCap(stockData.marketCap)}</p>
+                      <p className="font-display text-lg font-bold">{formatLargeNumber(stockData.marketCap)}</p>
                     </CardContent>
                   </Card>
                   <Card>
@@ -376,75 +576,87 @@ export default function Analyzer() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="financials" className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+              {/* VALUATION TAB */}
+              <TabsContent value="valuation" className="space-y-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Valorisation</CardTitle>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Scale className="h-5 w-5" />
+                        Multiples de valorisation
+                      </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">P/E Ratio</span>
-                        <span className="font-medium">{stockData.peRatio}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">EPS (TTM)</span>
-                        <span className="font-medium">{stockData.eps}€</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">Market Cap</span>
-                        <span className="font-medium">{formatMarketCap(stockData.marketCap)}</span>
-                      </div>
-                      <div className="flex justify-between py-2">
-                        <span className="text-muted-foreground">Beta</span>
-                        <span className="font-medium">{stockData.beta}</span>
-                      </div>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="P/E (TTM)" value={stockData.peRatio} />
+                      <MetricRow label="P/E Forward" value={stockData.forwardPE} />
+                      <MetricRow label="PEG Ratio" value={stockData.pegRatio} />
+                      <MetricRow label="P/B (Price to Book)" value={stockData.priceToBook} />
+                      <MetricRow label="P/S (Price to Sales)" value={stockData.priceToSales} />
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader>
-                      <CardTitle>Dividendes</CardTitle>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Building className="h-5 w-5" />
+                        Enterprise Value
+                      </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">Dividende annuel</span>
-                        <span className="font-medium">{stockData.dividend}€</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">Rendement</span>
-                        <span className="font-medium">{stockData.dividendYield}%</span>
-                      </div>
-                      <div className="flex justify-between py-2">
-                        <span className="text-muted-foreground">Payout Ratio</span>
-                        <span className="font-medium">~35%</span>
-                      </div>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="Enterprise Value" value={formatLargeNumber(stockData.enterpriseValue)} />
+                      <MetricRow label="EV/EBITDA" value={stockData.evToEbitda} />
+                      <MetricRow label="EV/Revenue" value={stockData.evToRevenue} />
+                      <MetricRow label="Market Cap" value={formatLargeNumber(stockData.marketCap)} />
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader>
-                      <CardTitle>Volume & Liquidité</CardTitle>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Calculator className="h-5 w-5" />
+                        DCF Analysis
+                      </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">Volume du jour</span>
-                        <span className="font-medium">{formatVolume(stockData.volume)}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">Volume moyen (3 mois)</span>
-                        <span className="font-medium">{formatVolume(stockData.avgVolume)}</span>
-                      </div>
-                      <div className="flex justify-between py-2">
-                        <span className="text-muted-foreground">Ratio volume</span>
-                        <span className="font-medium">{(stockData.volume / stockData.avgVolume).toFixed(2)}x</span>
-                      </div>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="Prix actuel" value={`${stockData.price}€`} />
+                      <MetricRow label="Valeur DCF" value={`${stockData.dcfValue}€`} />
+                      <MetricRow label="Upside/Downside" value={`${stockData.dcfUpside > 0 ? "+" : ""}${stockData.dcfUpside}%`} />
+                      <MetricRow label="WACC" value={`${stockData.wacc}%`} />
+                      <MetricRow label="Croissance terminale" value={`${stockData.terminalGrowth}%`} />
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader>
-                      <CardTitle>Range 52 semaines</CardTitle>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <DollarSign className="h-5 w-5" />
+                        Bénéfices par action
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="EPS (TTM)" value={`${stockData.eps}€`} />
+                      <MetricRow label="Croissance EPS" value={`${stockData.epsGrowth > 0 ? "+" : ""}${stockData.epsGrowth}%`} />
+                      <MetricRow label="FCF par action" value={`${stockData.fcfPerShare}€`} />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Banknote className="h-5 w-5" />
+                        Dividendes
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="Dividende annuel" value={`${stockData.dividend}€`} />
+                      <MetricRow label="Rendement" value={`${stockData.dividendYield}%`} />
+                      <MetricRow label="Payout Ratio" value={`${stockData.payoutRatio}%`} />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Range 52 semaines</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
@@ -459,16 +671,9 @@ export default function Analyzer() {
                               width: `${((stockData.price - stockData.week52Low) / (stockData.week52High - stockData.week52Low)) * 100}%` 
                             }}
                           />
-                          <div 
-                            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-primary rounded-full border-2 border-background"
-                            style={{ 
-                              left: `${((stockData.price - stockData.week52Low) / (stockData.week52High - stockData.week52Low)) * 100}%`,
-                              transform: 'translate(-50%, -50%)'
-                            }}
-                          />
                         </div>
                         <p className="text-center text-sm">
-                          Prix actuel: <span className="font-bold">{stockData.price}€</span>
+                          Prix: <span className="font-bold">{stockData.price}€</span>
                         </p>
                       </div>
                     </CardContent>
@@ -476,7 +681,271 @@ export default function Analyzer() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="chart" className="space-y-6">
+              {/* GROWTH TAB */}
+              <TabsContent value="growth" className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Croissance
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="Croissance CA (YoY)" value={`${stockData.revenueGrowth > 0 ? "+" : ""}${stockData.revenueGrowth}%`} />
+                      <MetricRow label="Croissance CA (3 ans CAGR)" value={`${stockData.revenueGrowth3Y}%`} />
+                      <MetricRow label="Croissance EPS (YoY)" value={`${stockData.epsGrowth > 0 ? "+" : ""}${stockData.epsGrowth}%`} />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Zap className="h-5 w-5" />
+                        Rentabilité (Returns)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="ROE (Return on Equity)" value={`${stockData.roe}%`} />
+                      <MetricRow label="ROA (Return on Assets)" value={`${stockData.roa}%`} />
+                      <MetricRow label="ROIC (Return on Invested Capital)" value={`${stockData.roic}%`} />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Évolution CA, Résultat Net & FCF (en B€)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[350px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={revenueHistory}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="year" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--card))', 
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Bar dataKey="revenue" name="Chiffre d'affaires" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                          <Line type="monotone" dataKey="netIncome" name="Résultat Net" stroke="hsl(var(--success))" strokeWidth={2} />
+                          <Line type="monotone" dataKey="fcf" name="Free Cash Flow" stroke="hsl(var(--warning))" strokeWidth={2} strokeDasharray="5 5" />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* MARGINS & FCF TAB */}
+              <TabsContent value="margins" className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Percent className="h-5 w-5" />
+                        Marges
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm text-muted-foreground">Marge brute</span>
+                          <span className="font-medium">{stockData.grossMargin}%</span>
+                        </div>
+                        <Progress value={stockData.grossMargin} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm text-muted-foreground">Marge opérationnelle</span>
+                          <span className="font-medium">{stockData.operatingMargin}%</span>
+                        </div>
+                        <Progress value={stockData.operatingMargin} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm text-muted-foreground">Marge EBITDA</span>
+                          <span className="font-medium">{stockData.ebitdaMargin}%</span>
+                        </div>
+                        <Progress value={stockData.ebitdaMargin} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm text-muted-foreground">Marge nette</span>
+                          <span className="font-medium">{stockData.netMargin}%</span>
+                        </div>
+                        <Progress value={stockData.netMargin} className="h-2" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Banknote className="h-5 w-5" />
+                        Free Cash Flow
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="FCF" value={formatLargeNumber(stockData.fcf)} />
+                      <MetricRow label="Marge FCF" value={`${stockData.fcfMargin}%`} />
+                      <MetricRow label="FCF Yield" value={`${stockData.fcfYield}%`} />
+                      <MetricRow label="FCF par action" value={`${stockData.fcfPerShare}€`} />
+                      <MetricRow label="Operating Cash Flow" value={formatLargeNumber(stockData.operatingCashFlow)} />
+                      <MetricRow label="CapEx" value={formatLargeNumber(stockData.capex)} />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Compte de résultat</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="Chiffre d'affaires" value={formatLargeNumber(stockData.revenue)} />
+                      <MetricRow label="Résultat brut" value={formatLargeNumber(stockData.grossProfit)} />
+                      <MetricRow label="Résultat opérationnel" value={formatLargeNumber(stockData.operatingIncome)} />
+                      <MetricRow label="EBITDA" value={formatLargeNumber(stockData.ebitda)} />
+                      <MetricRow label="Résultat net" value={formatLargeNumber(stockData.netIncome)} />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Évolution des marges (%)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={marginHistory}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="year" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--card))', 
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Line type="monotone" dataKey="grossMargin" name="Marge brute" stroke="hsl(var(--primary))" strokeWidth={2} />
+                          <Line type="monotone" dataKey="operatingMargin" name="Marge opérationnelle" stroke="hsl(var(--success))" strokeWidth={2} />
+                          <Line type="monotone" dataKey="netMargin" name="Marge nette" stroke="hsl(var(--warning))" strokeWidth={2} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* DEBT & HEALTH TAB */}
+              <TabsContent value="debt" className="space-y-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Scale className="h-5 w-5" />
+                        Structure du capital
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="Dette totale" value={formatLargeNumber(stockData.totalDebt)} />
+                      <MetricRow label="Trésorerie" value={formatLargeNumber(stockData.totalCash)} />
+                      <MetricRow label="Dette nette" value={formatLargeNumber(stockData.netDebt)} />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Ratios d'endettement
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="Debt/Equity" value={stockData.debtToEquity} />
+                      <MetricRow label="Debt/EBITDA" value={stockData.debtToEbitda} />
+                      <MetricRow label="Interest Coverage" value={`${stockData.interestCoverage}x`} />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Activity className="h-5 w-5" />
+                        Liquidité
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1">
+                      <MetricRow label="Current Ratio" value={stockData.currentRatio} />
+                      <MetricRow label="Quick Ratio" value={stockData.quickRatio} />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Health Score Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Score de santé financière</CardTitle>
+                    <CardDescription>Évaluation basée sur les ratios clés</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-4 rounded-lg bg-secondary/50">
+                        <p className="text-sm text-muted-foreground mb-2">Debt/Equity</p>
+                        <div className={cn(
+                          "text-2xl font-bold",
+                          stockData.debtToEquity < 0.5 ? "text-success" : 
+                          stockData.debtToEquity < 1 ? "text-warning" : "text-destructive"
+                        )}>
+                          {stockData.debtToEquity < 0.5 ? "Excellent" : 
+                           stockData.debtToEquity < 1 ? "Correct" : "Élevé"}
+                        </div>
+                      </div>
+                      <div className="text-center p-4 rounded-lg bg-secondary/50">
+                        <p className="text-sm text-muted-foreground mb-2">Interest Coverage</p>
+                        <div className={cn(
+                          "text-2xl font-bold",
+                          stockData.interestCoverage > 10 ? "text-success" : 
+                          stockData.interestCoverage > 5 ? "text-warning" : "text-destructive"
+                        )}>
+                          {stockData.interestCoverage > 10 ? "Excellent" : 
+                           stockData.interestCoverage > 5 ? "Correct" : "Faible"}
+                        </div>
+                      </div>
+                      <div className="text-center p-4 rounded-lg bg-secondary/50">
+                        <p className="text-sm text-muted-foreground mb-2">Current Ratio</p>
+                        <div className={cn(
+                          "text-2xl font-bold",
+                          stockData.currentRatio > 1.5 ? "text-success" : 
+                          stockData.currentRatio > 1 ? "text-warning" : "text-destructive"
+                        )}>
+                          {stockData.currentRatio > 1.5 ? "Excellent" : 
+                           stockData.currentRatio > 1 ? "Correct" : "Faible"}
+                        </div>
+                      </div>
+                      <div className="text-center p-4 rounded-lg bg-secondary/50">
+                        <p className="text-sm text-muted-foreground mb-2">FCF Yield</p>
+                        <div className={cn(
+                          "text-2xl font-bold",
+                          stockData.fcfYield > 5 ? "text-success" : 
+                          stockData.fcfYield > 2 ? "text-warning" : "text-destructive"
+                        )}>
+                          {stockData.fcfYield > 5 ? "Excellent" : 
+                           stockData.fcfYield > 2 ? "Correct" : "Faible"}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* CHARTS TAB */}
+              <TabsContent value="charts" className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Historique du cours</CardTitle>
@@ -495,13 +964,7 @@ export default function Analyzer() {
                               borderRadius: '8px'
                             }}
                           />
-                          <Line 
-                            type="monotone" 
-                            dataKey="price" 
-                            stroke="hsl(var(--primary))" 
-                            strokeWidth={2}
-                            dot={false}
-                          />
+                          <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -535,6 +998,7 @@ export default function Analyzer() {
                 </Card>
               </TabsContent>
 
+              {/* COMPANY TAB */}
               <TabsContent value="company" className="space-y-6">
                 <Card>
                   <CardHeader>
@@ -608,8 +1072,8 @@ export default function Analyzer() {
               <Search className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-20" />
               <h3 className="font-display text-xl font-semibold mb-2">Recherchez une action</h3>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Entrez le symbole d'une action (ex: AAPL, MSFT, GOOGL) pour accéder à une analyse complète : 
-                métriques financières, graphiques, informations sur l'entreprise et plus encore.
+                Entrez le symbole d'une action pour accéder à une analyse fondamentale complète : 
+                DCF, FCF, marges, croissance, dette, et plus encore.
               </p>
             </CardContent>
           </Card>
