@@ -83,7 +83,7 @@ export default function Auth() {
               <TrendingUp className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-2xl">WealthPilot</h1>
+              <h1 className="font-display font-bold text-2xl">Riphus</h1>
               <p className="text-sm text-muted-foreground">Pilotez votre argent</p>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function Auth() {
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-success flex items-center justify-center">
               <TrendingUp className="h-5 w-5 text-primary-foreground" />
             </div>
-            <h1 className="font-display font-bold text-xl">WealthPilot</h1>
+            <h1 className="font-display font-bold text-xl">Riphus</h1>
           </div>
 
           <Tabs defaultValue="signin" className="space-y-6">
