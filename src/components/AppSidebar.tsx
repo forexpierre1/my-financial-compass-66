@@ -6,7 +6,9 @@ import {
   TrendingUp,
   Settings,
   Crown,
-  LogOut
+  LogOut,
+  Star,
+  Search
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -29,6 +31,8 @@ const mainNavItems = [
   { title: "Objectifs", url: "/objectives", icon: Target },
   { title: "Budget", url: "/budget", icon: Wallet },
   { title: "Portefeuille", url: "/portfolio", icon: TrendingUp },
+  { title: "Watchlist", url: "/watchlist", icon: Star },
+  { title: "Analyseur", url: "/analyzer", icon: Search },
   { title: "Patrimoine", url: "/patrimony", icon: PiggyBank },
 ];
 
@@ -53,7 +57,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div>
-              <h1 className="font-display font-bold text-lg">WealthPilot</h1>
+              <h1 className="font-display font-bold text-lg">Riphus</h1>
               <p className="text-xs text-muted-foreground">Pilotez votre argent</p>
             </div>
           )}

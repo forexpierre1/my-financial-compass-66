@@ -11,6 +11,8 @@ import Budget from "./pages/Budget";
 import Portfolio from "./pages/Portfolio";
 import Patrimony from "./pages/Patrimony";
 import Settings from "./pages/Settings";
+import Watchlist from "./pages/Watchlist";
+import Analyzer from "./pages/Analyzer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,8 @@ const App = () => (
           <Route path="/budget" element={<Budget />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/patrimony" element={<Patrimony />} />
+          <Route path="/watchlist" element={<Watchlist />} />
+          <Route path="/analyzer" element={<Analyzer />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
