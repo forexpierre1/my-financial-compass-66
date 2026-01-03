@@ -8,7 +8,9 @@ import {
   Crown,
   LogOut,
   Star,
-  Search
+  Search,
+  Filter,
+  Scale
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -25,6 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.avif";
 
 const mainNavItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -33,6 +36,8 @@ const mainNavItems = [
   { title: "Portefeuille", url: "/portfolio", icon: TrendingUp },
   { title: "Watchlist", url: "/watchlist", icon: Star },
   { title: "Analyseur", url: "/analyzer", icon: Search },
+  { title: "Screener", url: "/screener", icon: Filter },
+  { title: "Comparateur", url: "/comparator", icon: Scale },
   { title: "Patrimoine", url: "/patrimony", icon: PiggyBank },
 ];
 
@@ -52,9 +57,7 @@ export function AppSidebar() {
           "flex items-center gap-3 transition-all",
           collapsed && "justify-center"
         )}>
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-success flex items-center justify-center">
-            <TrendingUp className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src={logo} alt="Riphus" className="h-10 w-10 rounded-xl object-cover" />
           {!collapsed && (
             <div>
               <h1 className="font-display font-bold text-lg">Riphus</h1>
