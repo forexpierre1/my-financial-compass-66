@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.avif";
+import { RiphusLogo } from "@/components/RiphusLogo";
 
 const mainNavItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -57,13 +57,7 @@ export function AppSidebar() {
           "flex items-center gap-3 transition-all",
           collapsed && "justify-center"
         )}>
-          <img src={logo} alt="Riphus" className="h-10 w-10 rounded-xl object-cover" />
-          {!collapsed && (
-            <div>
-              <h1 className="font-display font-bold text-lg">Riphus</h1>
-              <p className="text-xs text-muted-foreground">Pilotez votre argent</p>
-            </div>
-          )}
+          <RiphusLogo size="sm" showText={!collapsed} />
         </div>
       </SidebarHeader>
 
