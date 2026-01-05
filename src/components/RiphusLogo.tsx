@@ -86,15 +86,6 @@ export function RiphusLogo({ size = "md", showText = true, className, animated =
         fill="url(#riphusGrad3)"
         filter="url(#logoGlow)"
       />
-      
-      {/* Accent dot */}
-      <circle
-        cx="37"
-        cy="7"
-        r="5"
-        fill="url(#riphusGrad1)"
-        opacity="0.8"
-      />
     </svg>
   );
 

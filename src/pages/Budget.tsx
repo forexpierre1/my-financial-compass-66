@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Plus, ArrowUp, ArrowDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, ArrowUp, ArrowDown, MoreHorizontal, Pencil, Trash2, Calendar, Settings2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { format, startOfMonth, endOfMonth, isWithinInterval, parse } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface Transaction {
   id: string;
@@ -42,7 +44,27 @@ const categoryLabels: Record<string, string> = {
   autres: "Autres",
 };
 
+const budgetCategories = ["logement", "alimentation", "transport", "loisirs", "investissement"] as const;
+
+const months = [
+  { value: "2025-01", label: "Janvier 2025" },
+  { value: "2025-02", label: "Février 2025" },
+  { value: "2025-03", label: "Mars 2025" },
+  { value: "2025-04", label: "Avril 2025" },
+  { value: "2025-05", label: "Mai 2025" },
+  { value: "2025-06", label: "Juin 2025" },
+  { value: "2025-07", label: "Juillet 2025" },
+  { value: "2025-08", label: "Août 2025" },
+  { value: "2025-09", label: "Septembre 2025" },
+  { value: "2025-10", label: "Octobre 2025" },
+  { value: "2025-11", label: "Novembre 2025" },
+  { value: "2025-12", label: "Décembre 2025" },
+  { value: "2026-01", label: "Janvier 2026" },
+];
+
 export default function Budget() {
+  const [selectedMonth, setSelectedMonth] = useState("2025-12");
+  
   const [transactions, setTransactions] = useState<Transaction[]>([
     { id: "1", description: "Salaire", amount: 3500, type: "income", category: "salaire", date: "2025-12-01" },
     { id: "2", description: "Loyer", amount: 900, type: "expense", category: "logement", date: "2025-12-05" },
@@ -50,15 +72,20 @@ export default function Budget() {
     { id: "4", description: "Abonnement transport", amount: 80, type: "expense", category: "transport", date: "2025-12-01" },
     { id: "5", description: "Netflix + Spotify", amount: 25, type: "expense", category: "loisirs", date: "2025-12-01" },
     { id: "6", description: "Investissement ETF", amount: 500, type: "expense", category: "investissement", date: "2025-12-15" },
+    { id: "7", description: "Salaire Janvier", amount: 3500, type: "income", category: "salaire", date: "2026-01-01" },
+    { id: "8", description: "Loyer Janvier", amount: 900, type: "expense", category: "logement", date: "2026-01-05" },
   ]);
 
-  const [budgets] = useState({
+  const [budgets, setBudgets] = useState<Record<string, number>>({
     logement: 1000,
     alimentation: 400,
     transport: 100,
     loisirs: 200,
     investissement: 600,
   });
+
+  const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
+  const [tempBudgets, setTempBudgets] = useState(budgets);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -69,6 +96,18 @@ export default function Budget() {
     category: "autres",
     date: new Date().toISOString().split('T')[0],
   });
+
+  // Filter transactions by selected month
+  const filteredTransactions = useMemo(() => {
+    const monthDate = parse(selectedMonth, "yyyy-MM", new Date());
+    const start = startOfMonth(monthDate);
+    const end = endOfMonth(monthDate);
+    
+    return transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return isWithinInterval(transactionDate, { start, end });
+    });
+  }, [transactions, selectedMonth]);
 
   const resetForm = () => {
     setFormData({
@@ -122,12 +161,18 @@ export default function Budget() {
     toast.success("Transaction supprimée");
   };
 
-  const totalIncome = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
-  const totalExpenses = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+  const handleSaveBudgets = () => {
+    setBudgets(tempBudgets);
+    setIsBudgetDialogOpen(false);
+    toast.success("Budgets mis à jour");
+  };
+
+  const totalIncome = filteredTransactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = filteredTransactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
   const balance = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? ((balance / totalIncome) * 100).toFixed(1) : "0";
 
-  const expensesByCategory = transactions
+  const expensesByCategory = filteredTransactions
     .filter(t => t.type === "expense")
     .reduce((acc, t) => {
       acc[t.category] = (acc[t.category] || 0) + t.amount;
@@ -146,9 +191,69 @@ export default function Budget() {
     spent: expensesByCategory[category] || 0,
   }));
 
+  const selectedMonthLabel = months.find(m => m.value === selectedMonth)?.label || selectedMonth;
+
   return (
     <DashboardLayout title="Budget" subtitle="Suivez vos revenus et dépenses">
       <div className="space-y-6">
+        {/* Month Selector & Budget Settings */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Calendar className="h-5 w-5 text-primary" />
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[200px] bg-secondary/50 border-border/50">
+                <SelectValue placeholder="Sélectionner un mois" />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                {months.map((month) => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Dialog open={isBudgetDialogOpen} onOpenChange={(open) => {
+            setIsBudgetDialogOpen(open);
+            if (open) setTempBudgets(budgets);
+          }}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Settings2 className="h-4 w-4" />
+                Gérer les budgets
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Définir vos budgets mensuels</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                {budgetCategories.map((category) => (
+                  <div key={category} className="flex items-center justify-between gap-4">
+                    <Label className="w-32">{categoryLabels[category]}</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        value={tempBudgets[category] || 0}
+                        onChange={(e) => setTempBudgets({
+                          ...tempBudgets,
+                          [category]: parseFloat(e.target.value) || 0
+                        })}
+                        className="w-32"
+                      />
+                      <span className="text-muted-foreground">€</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={handleSaveBudgets} className="w-full">
+                Enregistrer
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </div>
+
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card variant="elevated" className="animate-slide-up">
@@ -394,59 +499,65 @@ export default function Budget() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {transactions.map((transaction) => (
-                <div 
-                  key={transaction.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      "h-10 w-10 rounded-lg flex items-center justify-center",
-                      transaction.type === "income" ? "bg-success/10" : "bg-secondary"
-                    )}>
-                      {transaction.type === "income" ? (
-                        <ArrowUp className="h-5 w-5 text-success" />
-                      ) : (
-                        <ArrowDown className="h-5 w-5 text-muted-foreground" />
-                      )}
+              {filteredTransactions.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  Aucune transaction pour {selectedMonthLabel}
+                </p>
+              ) : (
+                filteredTransactions.map((transaction) => (
+                  <div 
+                    key={transaction.id}
+                    className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        "h-10 w-10 rounded-lg flex items-center justify-center",
+                        transaction.type === "income" ? "bg-success/10" : "bg-secondary"
+                      )}>
+                        {transaction.type === "income" ? (
+                          <ArrowUp className="h-5 w-5 text-success" />
+                        ) : (
+                          <ArrowDown className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">{transaction.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {categoryLabels[transaction.category]} • {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{transaction.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {categoryLabels[transaction.category]} • {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                    <div className="flex items-center gap-4">
+                      <p className={cn(
+                        "font-medium",
+                        transaction.type === "income" ? "text-success" : "text-foreground"
+                      )}>
+                        {transaction.type === "income" ? "+" : "-"}{transaction.amount.toLocaleString()} €
                       </p>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-card border-border">
+                          <DropdownMenuItem onClick={() => handleEdit(transaction)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(transaction.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <p className={cn(
-                      "font-medium",
-                      transaction.type === "income" ? "text-success" : "text-foreground"
-                    )}>
-                      {transaction.type === "income" ? "+" : "-"}{transaction.amount.toLocaleString()} €
-                    </p>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(transaction)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDelete(transaction.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
