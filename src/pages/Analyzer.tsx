@@ -13,7 +13,7 @@ import {
   TrendingDown, 
   DollarSign,
   BarChart3,
-  PieChart,
+  PieChart as PieChartIcon,
   Activity,
   AlertTriangle,
   CheckCircle,
@@ -44,7 +44,16 @@ import {
   Area,
   BarChart,
   Bar,
-  ComposedChart
+  ComposedChart,
+  Cell,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend,
+  PieChart,
+  Pie
 } from "recharts";
 
 type StockData = {
@@ -578,126 +587,216 @@ export default function Analyzer() {
 
               {/* VALUATION TAB */}
               <TabsContent value="valuation" className="space-y-6">
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Scale className="h-5 w-5" />
-                        Multiples de valorisation
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="P/E (TTM)" value={stockData.peRatio} />
-                      <MetricRow label="P/E Forward" value={stockData.forwardPE} />
-                      <MetricRow label="PEG Ratio" value={stockData.pegRatio} />
-                      <MetricRow label="P/B (Price to Book)" value={stockData.priceToBook} />
-                      <MetricRow label="P/S (Price to Sales)" value={stockData.priceToSales} />
-                    </CardContent>
-                  </Card>
+                {/* Valuation Multiples Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Scale className="h-5 w-5" />
+                      Multiples de valorisation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart 
+                          data={[
+                            { name: "P/E", value: stockData.peRatio, benchmark: 25 },
+                            { name: "Forward P/E", value: stockData.forwardPE, benchmark: 20 },
+                            { name: "PEG", value: stockData.pegRatio, benchmark: 1.5 },
+                            { name: "P/B", value: stockData.priceToBook, benchmark: 3 },
+                            { name: "P/S", value: stockData.priceToSales, benchmark: 5 },
+                            { name: "EV/EBITDA", value: stockData.evToEbitda, benchmark: 15 },
+                          ]}
+                          layout="vertical"
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} width={80} />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--card))', 
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Bar dataKey="value" name="Actuel" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                          <Bar dataKey="benchmark" name="Benchmark" fill="hsl(var(--muted))" radius={[0, 4, 4, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
 
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* DCF Visual */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Building className="h-5 w-5" />
-                        Enterprise Value
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="Enterprise Value" value={formatLargeNumber(stockData.enterpriseValue)} />
-                      <MetricRow label="EV/EBITDA" value={stockData.evToEbitda} />
-                      <MetricRow label="EV/Revenue" value={stockData.evToRevenue} />
-                      <MetricRow label="Market Cap" value={formatLargeNumber(stockData.marketCap)} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2">
                         <Calculator className="h-5 w-5" />
                         DCF Analysis
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="Prix actuel" value={`${stockData.price}€`} />
-                      <MetricRow label="Valeur DCF" value={`${stockData.dcfValue}€`} />
-                      <MetricRow label="Upside/Downside" value={`${stockData.dcfUpside > 0 ? "+" : ""}${stockData.dcfUpside}%`} />
-                      <MetricRow label="WACC" value={`${stockData.wacc}%`} />
-                      <MetricRow label="Croissance terminale" value={`${stockData.terminalGrowth}%`} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <DollarSign className="h-5 w-5" />
-                        Bénéfices par action
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="EPS (TTM)" value={`${stockData.eps}€`} />
-                      <MetricRow label="Croissance EPS" value={`${stockData.epsGrowth > 0 ? "+" : ""}${stockData.epsGrowth}%`} />
-                      <MetricRow label="FCF par action" value={`${stockData.fcfPerShare}€`} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Banknote className="h-5 w-5" />
-                        Dividendes
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="Dividende annuel" value={`${stockData.dividend}€`} />
-                      <MetricRow label="Rendement" value={`${stockData.dividendYield}%`} />
-                      <MetricRow label="Payout Ratio" value={`${stockData.payoutRatio}%`} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Range 52 semaines</CardTitle>
-                    </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{stockData.week52Low}€</span>
-                          <span className="text-muted-foreground">{stockData.week52High}€</span>
-                        </div>
-                        <div className="relative h-2 bg-secondary rounded-full">
-                          <div 
-                            className="absolute h-full bg-primary rounded-full"
-                            style={{ 
-                              width: `${((stockData.price - stockData.week52Low) / (stockData.week52High - stockData.week52Low)) * 100}%` 
-                            }}
-                          />
-                        </div>
-                        <p className="text-center text-sm">
-                          Prix: <span className="font-bold">{stockData.price}€</span>
+                      <div className="h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart 
+                            data={[
+                              { name: "Prix actuel", value: stockData.price },
+                              { name: "Valeur DCF", value: stockData.dcfValue },
+                            ]}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                              formatter={(value: number) => [`${value}€`, '']}
+                            />
+                            <Bar 
+                              dataKey="value" 
+                              radius={[4, 4, 0, 0]}
+                              fill={stockData.dcfUpside > 0 ? "hsl(var(--success))" : "hsl(var(--destructive))"}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="mt-4 text-center">
+                        <p className="text-sm text-muted-foreground">Potentiel</p>
+                        <p className={cn(
+                          "text-2xl font-bold",
+                          stockData.dcfUpside > 0 ? "text-success" : "text-destructive"
+                        )}>
+                          {stockData.dcfUpside > 0 ? "+" : ""}{stockData.dcfUpside}%
                         </p>
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* 52-Week Range Visual */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Position dans le range 52 semaines</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart 
+                            data={[
+                              { name: "Plus bas", value: stockData.week52Low },
+                              { name: "Actuel", value: stockData.price },
+                              { name: "Plus haut", value: stockData.week52High },
+                            ]}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                              formatter={(value: number) => [`${value}€`, '']}
+                            />
+                            <Bar 
+                              dataKey="value" 
+                              radius={[4, 4, 0, 0]}
+                            >
+                              <Cell fill="hsl(var(--destructive))" />
+                              <Cell fill="hsl(var(--primary))" />
+                              <Cell fill="hsl(var(--success))" />
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
+
+                {/* Dividends Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Banknote className="h-5 w-5" />
+                      Rendement & Dividendes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[200px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart 
+                          data={[
+                            { name: "Dividende", value: stockData.dividend, unit: "€" },
+                            { name: "Rendement", value: stockData.dividendYield, unit: "%" },
+                            { name: "Payout Ratio", value: stockData.payoutRatio, unit: "%" },
+                          ]}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--card))', 
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Bar dataKey="value" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* GROWTH TAB */}
               <TabsContent value="growth" className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5" />
-                        Croissance
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="Croissance CA (YoY)" value={`${stockData.revenueGrowth > 0 ? "+" : ""}${stockData.revenueGrowth}%`} />
-                      <MetricRow label="Croissance CA (3 ans CAGR)" value={`${stockData.revenueGrowth3Y}%`} />
-                      <MetricRow label="Croissance EPS (YoY)" value={`${stockData.epsGrowth > 0 ? "+" : ""}${stockData.epsGrowth}%`} />
-                    </CardContent>
-                  </Card>
+                {/* Growth Metrics Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Taux de croissance
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart 
+                          data={[
+                            { name: "CA (YoY)", value: stockData.revenueGrowth },
+                            { name: "CA (3Y CAGR)", value: stockData.revenueGrowth3Y },
+                            { name: "EPS (YoY)", value: stockData.epsGrowth },
+                          ]}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v}%`} />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--card))', 
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                            formatter={(value: number) => [`${value}%`, 'Croissance']}
+                          />
+                          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                            {[stockData.revenueGrowth, stockData.revenueGrowth3Y, stockData.epsGrowth].map((val, i) => (
+                              <Cell key={i} fill={val >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))"} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
 
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Returns Radar Chart */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -705,14 +804,60 @@ export default function Analyzer() {
                         Rentabilité (Returns)
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="ROE (Return on Equity)" value={`${stockData.roe}%`} />
-                      <MetricRow label="ROA (Return on Assets)" value={`${stockData.roa}%`} />
-                      <MetricRow label="ROIC (Return on Invested Capital)" value={`${stockData.roic}%`} />
+                    <CardContent>
+                      <div className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadarChart data={[
+                            { metric: "ROE", value: stockData.roe, fullMark: 50 },
+                            { metric: "ROA", value: stockData.roa, fullMark: 50 },
+                            { metric: "ROIC", value: stockData.roic, fullMark: 50 },
+                          ]}>
+                            <PolarGrid stroke="hsl(var(--border))" />
+                            <PolarAngleAxis dataKey="metric" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                            <PolarRadiusAxis angle={30} domain={[0, 50]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+                            <Radar name="Returns" dataKey="value" stroke="hsl(var(--success))" fill="hsl(var(--success))" fillOpacity={0.5} />
+                          </RadarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Returns Bar Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Comparaison des returns (%)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart 
+                            data={[
+                              { name: "ROE", value: stockData.roe, benchmark: 15 },
+                              { name: "ROA", value: stockData.roa, benchmark: 8 },
+                              { name: "ROIC", value: stockData.roic, benchmark: 12 },
+                            ]}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                            />
+                            <Legend />
+                            <Bar dataKey="value" name="Actuel" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="benchmark" name="Benchmark" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
 
+                {/* Revenue History Chart */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Évolution CA, Résultat Net & FCF (en B€)</CardTitle>
@@ -731,6 +876,7 @@ export default function Analyzer() {
                               borderRadius: '8px'
                             }}
                           />
+                          <Legend />
                           <Bar dataKey="revenue" name="Chiffre d'affaires" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                           <Line type="monotone" dataKey="netIncome" name="Résultat Net" stroke="hsl(var(--success))" strokeWidth={2} />
                           <Line type="monotone" dataKey="fcf" name="Free Cash Flow" stroke="hsl(var(--warning))" strokeWidth={2} strokeDasharray="5 5" />
@@ -744,201 +890,136 @@ export default function Analyzer() {
               {/* MARGINS & FCF TAB */}
               <TabsContent value="margins" className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
+                  {/* Margins Radar Chart */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Percent className="h-5 w-5" />
-                        Marges
+                        Marges (%)
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm text-muted-foreground">Marge brute</span>
-                          <span className="font-medium">{stockData.grossMargin}%</span>
-                        </div>
-                        <Progress value={stockData.grossMargin} className="h-2" />
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm text-muted-foreground">Marge opérationnelle</span>
-                          <span className="font-medium">{stockData.operatingMargin}%</span>
-                        </div>
-                        <Progress value={stockData.operatingMargin} className="h-2" />
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm text-muted-foreground">Marge EBITDA</span>
-                          <span className="font-medium">{stockData.ebitdaMargin}%</span>
-                        </div>
-                        <Progress value={stockData.ebitdaMargin} className="h-2" />
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm text-muted-foreground">Marge nette</span>
-                          <span className="font-medium">{stockData.netMargin}%</span>
-                        </div>
-                        <Progress value={stockData.netMargin} className="h-2" />
+                    <CardContent>
+                      <div className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadarChart data={[
+                            { metric: "Brute", value: stockData.grossMargin, fullMark: 100 },
+                            { metric: "Opér.", value: stockData.operatingMargin, fullMark: 100 },
+                            { metric: "EBITDA", value: stockData.ebitdaMargin, fullMark: 100 },
+                            { metric: "Nette", value: stockData.netMargin, fullMark: 100 },
+                            { metric: "FCF", value: stockData.fcfMargin, fullMark: 100 },
+                          ]}>
+                            <PolarGrid stroke="hsl(var(--border))" />
+                            <PolarAngleAxis dataKey="metric" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+                            <Radar name="Marges" dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.5} />
+                          </RadarChart>
+                        </ResponsiveContainer>
                       </div>
                     </CardContent>
                   </Card>
 
+                  {/* Margins Bar Chart */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Banknote className="h-5 w-5" />
-                        Free Cash Flow
-                      </CardTitle>
+                      <CardTitle>Évolution des marges</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="FCF" value={formatLargeNumber(stockData.fcf)} />
-                      <MetricRow label="Marge FCF" value={`${stockData.fcfMargin}%`} />
-                      <MetricRow label="FCF Yield" value={`${stockData.fcfYield}%`} />
-                      <MetricRow label="FCF par action" value={`${stockData.fcfPerShare}€`} />
-                      <MetricRow label="Operating Cash Flow" value={formatLargeNumber(stockData.operatingCashFlow)} />
-                      <MetricRow label="CapEx" value={formatLargeNumber(stockData.capex)} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Compte de résultat</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="Chiffre d'affaires" value={formatLargeNumber(stockData.revenue)} />
-                      <MetricRow label="Résultat brut" value={formatLargeNumber(stockData.grossProfit)} />
-                      <MetricRow label="Résultat opérationnel" value={formatLargeNumber(stockData.operatingIncome)} />
-                      <MetricRow label="EBITDA" value={formatLargeNumber(stockData.ebitda)} />
-                      <MetricRow label="Résultat net" value={formatLargeNumber(stockData.netIncome)} />
+                    <CardContent>
+                      <div className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={marginHistory}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="year" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                            />
+                            <Legend />
+                            <Bar dataKey="grossMargin" name="M. Brute" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="operatingMargin" name="M. Opér." fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="netMargin" name="M. Nette" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
 
+                {/* FCF Analysis Chart */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Évolution des marges (%)</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <Banknote className="h-5 w-5" />
+                      Free Cash Flow Analysis
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={marginHistory}>
+                        <BarChart 
+                          data={[
+                            { name: "Op. Cash Flow", value: stockData.operatingCashFlow / 1e9 },
+                            { name: "CapEx", value: -stockData.capex / 1e9 },
+                            { name: "FCF", value: stockData.fcf / 1e9 },
+                          ]}
+                        >
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="year" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v}B`} />
                           <Tooltip 
                             contentStyle={{ 
                               backgroundColor: 'hsl(var(--card))', 
                               border: '1px solid hsl(var(--border))',
                               borderRadius: '8px'
                             }}
+                            formatter={(value: number) => [`${value.toFixed(2)}B €`, '']}
                           />
-                          <Line type="monotone" dataKey="grossMargin" name="Marge brute" stroke="hsl(var(--primary))" strokeWidth={2} />
-                          <Line type="monotone" dataKey="operatingMargin" name="Marge opérationnelle" stroke="hsl(var(--success))" strokeWidth={2} />
-                          <Line type="monotone" dataKey="netMargin" name="Marge nette" stroke="hsl(var(--warning))" strokeWidth={2} />
-                        </LineChart>
+                          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                            <Cell fill="hsl(var(--primary))" />
+                            <Cell fill="hsl(var(--destructive))" />
+                            <Cell fill="hsl(var(--success))" />
+                          </Bar>
+                        </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
 
-              {/* DEBT & HEALTH TAB */}
-              <TabsContent value="debt" className="space-y-6">
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Scale className="h-5 w-5" />
-                        Structure du capital
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="Dette totale" value={formatLargeNumber(stockData.totalDebt)} />
-                      <MetricRow label="Trésorerie" value={formatLargeNumber(stockData.totalCash)} />
-                      <MetricRow label="Dette nette" value={formatLargeNumber(stockData.netDebt)} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5" />
-                        Ratios d'endettement
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="Debt/Equity" value={stockData.debtToEquity} />
-                      <MetricRow label="Debt/EBITDA" value={stockData.debtToEbitda} />
-                      <MetricRow label="Interest Coverage" value={`${stockData.interestCoverage}x`} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Activity className="h-5 w-5" />
-                        Liquidité
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1">
-                      <MetricRow label="Current Ratio" value={stockData.currentRatio} />
-                      <MetricRow label="Quick Ratio" value={stockData.quickRatio} />
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Health Score Card */}
+                {/* Income Statement Chart */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Score de santé financière</CardTitle>
-                    <CardDescription>Évaluation basée sur les ratios clés</CardDescription>
+                    <CardTitle>Compte de résultat (B€)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-4 rounded-lg bg-secondary/50">
-                        <p className="text-sm text-muted-foreground mb-2">Debt/Equity</p>
-                        <div className={cn(
-                          "text-2xl font-bold",
-                          stockData.debtToEquity < 0.5 ? "text-success" : 
-                          stockData.debtToEquity < 1 ? "text-warning" : "text-destructive"
-                        )}>
-                          {stockData.debtToEquity < 0.5 ? "Excellent" : 
-                           stockData.debtToEquity < 1 ? "Correct" : "Élevé"}
-                        </div>
-                      </div>
-                      <div className="text-center p-4 rounded-lg bg-secondary/50">
-                        <p className="text-sm text-muted-foreground mb-2">Interest Coverage</p>
-                        <div className={cn(
-                          "text-2xl font-bold",
-                          stockData.interestCoverage > 10 ? "text-success" : 
-                          stockData.interestCoverage > 5 ? "text-warning" : "text-destructive"
-                        )}>
-                          {stockData.interestCoverage > 10 ? "Excellent" : 
-                           stockData.interestCoverage > 5 ? "Correct" : "Faible"}
-                        </div>
-                      </div>
-                      <div className="text-center p-4 rounded-lg bg-secondary/50">
-                        <p className="text-sm text-muted-foreground mb-2">Current Ratio</p>
-                        <div className={cn(
-                          "text-2xl font-bold",
-                          stockData.currentRatio > 1.5 ? "text-success" : 
-                          stockData.currentRatio > 1 ? "text-warning" : "text-destructive"
-                        )}>
-                          {stockData.currentRatio > 1.5 ? "Excellent" : 
-                           stockData.currentRatio > 1 ? "Correct" : "Faible"}
-                        </div>
-                      </div>
-                      <div className="text-center p-4 rounded-lg bg-secondary/50">
-                        <p className="text-sm text-muted-foreground mb-2">FCF Yield</p>
-                        <div className={cn(
-                          "text-2xl font-bold",
-                          stockData.fcfYield > 5 ? "text-success" : 
-                          stockData.fcfYield > 2 ? "text-warning" : "text-destructive"
-                        )}>
-                          {stockData.fcfYield > 5 ? "Excellent" : 
-                           stockData.fcfYield > 2 ? "Correct" : "Faible"}
-                        </div>
-                      </div>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart 
+                          layout="vertical"
+                          data={[
+                            { name: "CA", value: stockData.revenue / 1e9 },
+                            { name: "Rés. Brut", value: stockData.grossProfit / 1e9 },
+                            { name: "Rés. Opér.", value: stockData.operatingIncome / 1e9 },
+                            { name: "EBITDA", value: stockData.ebitda / 1e9 },
+                            { name: "Rés. Net", value: stockData.netIncome / 1e9 },
+                          ]}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v}B`} />
+                          <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} width={80} />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--card))', 
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                            formatter={(value: number) => [`${value.toFixed(2)}B €`, '']}
+                          />
+                          <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
                   </CardContent>
                 </Card>
