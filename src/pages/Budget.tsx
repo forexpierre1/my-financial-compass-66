@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -108,6 +108,39 @@ export default function Budget() {
       return isWithinInterval(transactionDate, { start, end });
     });
   }, [transactions, selectedMonth]);
+
+  // Check budget alerts
+  const checkBudgetAlerts = () => {
+    const expensesByCat = filteredTransactions
+      .filter(t => t.type === "expense")
+      .reduce((acc, t) => {
+        acc[t.category] = (acc[t.category] || 0) + t.amount;
+        return acc;
+      }, {} as Record<string, number>);
+
+    Object.entries(budgets).forEach(([category, budget]) => {
+      const spent = expensesByCat[category] || 0;
+      const percentage = (spent / budget) * 100;
+      
+      if (spent > budget) {
+        toast.error(`Budget ${categoryLabels[category]} dépassé !`, {
+          description: `Vous avez dépensé ${spent.toLocaleString()}€ sur un budget de ${budget.toLocaleString()}€`,
+        });
+      } else if (percentage >= 80) {
+        toast.warning(`Budget ${categoryLabels[category]} à ${percentage.toFixed(0)}%`, {
+          description: `Attention, vous approchez de la limite`,
+        });
+      }
+    });
+  };
+
+  // Check alerts when month or transactions change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      checkBudgetAlerts();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [selectedMonth, filteredTransactions.length]);
 
   const resetForm = () => {
     setFormData({
