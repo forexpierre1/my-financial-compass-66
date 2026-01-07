@@ -53,63 +53,7 @@ const categoryIcons = {
 };
 
 export default function Objectives() {
-  const [objectives, setObjectives] = useState<Objective[]>([
-    {
-      id: "1",
-      title: "Investir 1000€ par mois",
-      description: "Investissement régulier en ETF pour construire un patrimoine",
-      current: 750,
-      target: 1000,
-      unit: "€",
-      deadline: "2025-12-31",
-      priority: "high",
-      category: "investment",
-    },
-    {
-      id: "2",
-      title: "Épargne de précaution",
-      description: "Constituer 6 mois de dépenses en réserve",
-      current: 4500,
-      target: 10000,
-      unit: "€",
-      deadline: "2026-06-30",
-      priority: "high",
-      category: "savings",
-    },
-    {
-      id: "3",
-      title: "Taux d'épargne 20%",
-      description: "Épargner 20% de mes revenus mensuels",
-      current: 18,
-      target: 20,
-      unit: "%",
-      deadline: "2025-12-31",
-      priority: "medium",
-      category: "savings",
-    },
-    {
-      id: "4",
-      title: "Rembourser crédit auto",
-      description: "Solder le crédit auto avant échéance",
-      current: 2000,
-      target: 8000,
-      unit: "€",
-      deadline: "2026-12-31",
-      priority: "medium",
-      category: "debt",
-    },
-    {
-      id: "5",
-      title: "Patrimoine 100k€",
-      description: "Atteindre 100 000€ de patrimoine net",
-      current: 50000,
-      target: 100000,
-      unit: "€",
-      deadline: "2028-12-31",
-      priority: "low",
-      category: "investment",
-    },
-  ]);
+  const [objectives, setObjectives] = useState<Objective[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingObjective, setEditingObjective] = useState<Objective | null>(null);

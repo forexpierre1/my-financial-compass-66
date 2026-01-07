@@ -65,23 +65,14 @@ const months = [
 export default function Budget() {
   const [selectedMonth, setSelectedMonth] = useState("2025-12");
   
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: "1", description: "Salaire", amount: 3500, type: "income", category: "salaire", date: "2025-12-01" },
-    { id: "2", description: "Loyer", amount: 900, type: "expense", category: "logement", date: "2025-12-05" },
-    { id: "3", description: "Courses", amount: 350, type: "expense", category: "alimentation", date: "2025-12-10" },
-    { id: "4", description: "Abonnement transport", amount: 80, type: "expense", category: "transport", date: "2025-12-01" },
-    { id: "5", description: "Netflix + Spotify", amount: 25, type: "expense", category: "loisirs", date: "2025-12-01" },
-    { id: "6", description: "Investissement ETF", amount: 500, type: "expense", category: "investissement", date: "2025-12-15" },
-    { id: "7", description: "Salaire Janvier", amount: 3500, type: "income", category: "salaire", date: "2026-01-01" },
-    { id: "8", description: "Loyer Janvier", amount: 900, type: "expense", category: "logement", date: "2026-01-05" },
-  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const [budgets, setBudgets] = useState<Record<string, number>>({
-    logement: 1000,
-    alimentation: 400,
-    transport: 100,
-    loisirs: 200,
-    investissement: 600,
+    logement: 0,
+    alimentation: 0,
+    transport: 0,
+    loisirs: 0,
+    investissement: 0,
   });
 
   const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);

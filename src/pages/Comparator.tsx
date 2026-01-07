@@ -92,7 +92,7 @@ const mockStockData: Record<string, CompareStock> = {
 const availableSymbols = Object.keys(mockStockData);
 
 export default function Comparator() {
-  const [selectedStocks, setSelectedStocks] = useState<string[]>(["AAPL", "MSFT", "GOOGL"]);
+  const [selectedStocks, setSelectedStocks] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
