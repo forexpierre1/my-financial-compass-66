@@ -56,36 +56,7 @@ type Watchlist = {
   items: WatchlistItem[];
 };
 
-const initialWatchlists: Watchlist[] = [
-  {
-    id: "1",
-    name: "Actions Tech",
-    color: "bg-blue-500",
-    items: [
-      { id: "1", symbol: "AAPL", name: "Apple Inc.", price: 178.50, change: 2.30, changePercent: 1.30 },
-      { id: "2", symbol: "MSFT", name: "Microsoft Corp.", price: 378.20, change: -1.50, changePercent: -0.40 },
-      { id: "3", symbol: "GOOGL", name: "Alphabet Inc.", price: 141.80, change: 3.20, changePercent: 2.31 },
-    ],
-  },
-  {
-    id: "2",
-    name: "ETF Europe",
-    color: "bg-green-500",
-    items: [
-      { id: "4", symbol: "VEUR", name: "Vanguard FTSE Europe", price: 58.20, change: 0.45, changePercent: 0.78 },
-      { id: "5", symbol: "IMEA", name: "iShares MSCI Europe", price: 24.30, change: -0.12, changePercent: -0.49 },
-    ],
-  },
-  {
-    id: "3",
-    name: "Crypto",
-    color: "bg-purple-500",
-    items: [
-      { id: "6", symbol: "BTC", name: "Bitcoin", price: 43250.00, change: 1250.00, changePercent: 2.98 },
-      { id: "7", symbol: "ETH", name: "Ethereum", price: 2280.00, change: -45.00, changePercent: -1.94 },
-    ],
-  },
-];
+const initialWatchlists: Watchlist[] = [];
 
 const colorOptions = [
   { value: "bg-blue-500", label: "Bleu" },

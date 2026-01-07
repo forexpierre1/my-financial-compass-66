@@ -48,31 +48,10 @@ const categoryColors: Record<string, string> = {
   "other-debts": "hsl(0 50% 40%)",
 };
 
-const netWorthHistory = [
-  { date: "Jan", value: 25000 },
-  { date: "Fév", value: 27000 },
-  { date: "Mar", value: 28500 },
-  { date: "Avr", value: 31000 },
-  { date: "Mai", value: 33000 },
-  { date: "Juin", value: 35000 },
-  { date: "Juil", value: 38000 },
-  { date: "Août", value: 40000 },
-  { date: "Sep", value: 42000 },
-  { date: "Oct", value: 45000 },
-  { date: "Nov", value: 48000 },
-  { date: "Déc", value: 50000 },
-];
+const netWorthHistory: { date: string; value: number }[] = [];
 
 export default function Patrimony() {
-  const [items, setItems] = useState<PatrimonyItem[]>([
-    { id: "1", name: "Compte courant", type: "asset", category: "cash", value: 5000 },
-    { id: "2", name: "Livret A", type: "asset", category: "cash", value: 8000 },
-    { id: "3", name: "Portefeuille ETF", type: "asset", category: "investments", value: 40000 },
-    { id: "4", name: "Appartement", type: "asset", category: "real-estate", value: 180000 },
-    { id: "5", name: "Voiture", type: "asset", category: "vehicles", value: 15000 },
-    { id: "6", name: "Crédit immobilier", type: "liability", category: "mortgage", value: 150000 },
-    { id: "7", name: "Crédit auto", type: "liability", category: "car-loan", value: 8000 },
-  ]);
+  const [items, setItems] = useState<PatrimonyItem[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PatrimonyItem | null>(null);

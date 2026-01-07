@@ -39,28 +39,10 @@ const typeLabels: Record<string, string> = {
   cash: "Cash",
 };
 
-const performanceData = [
-  { date: "Jan", value: 28000 },
-  { date: "Fév", value: 29500 },
-  { date: "Mar", value: 28800 },
-  { date: "Avr", value: 31200 },
-  { date: "Mai", value: 32500 },
-  { date: "Juin", value: 33000 },
-  { date: "Juil", value: 35300 },
-  { date: "Août", value: 34800 },
-  { date: "Sep", value: 36500 },
-  { date: "Oct", value: 38200 },
-  { date: "Nov", value: 39800 },
-  { date: "Déc", value: 40000 },
-];
+const performanceData: { date: string; value: number }[] = [];
 
 export default function Portfolio() {
-  const [assets, setAssets] = useState<Asset[]>([
-    { id: "1", name: "Apple", type: "stocks", quantity: 10, buyPrice: 150, currentPrice: 175, color: typeColors.stocks },
-    { id: "2", name: "MSCI World", type: "etf", quantity: 25, buyPrice: 400, currentPrice: 450, color: typeColors.etf },
-    { id: "3", name: "Bitcoin", type: "crypto", quantity: 0.05, buyPrice: 60000, currentPrice: 95000, color: typeColors.crypto },
-    { id: "4", name: "Livret A", type: "cash", quantity: 1, buyPrice: 8000, currentPrice: 8000, color: typeColors.cash },
-  ]);
+  const [assets, setAssets] = useState<Asset[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
